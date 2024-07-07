@@ -57,14 +57,19 @@ app.post('/properties', upload.single('image'), async (req, res) => {
 
 // Route to get all properties
 app.get('/properties', async (req, res) => {
-  try {
-    const properties = await Property.find();
-    res.status(200).send(properties);
-  } catch (error) {
-    console.error('Error fetching properties:', error);
-    res.status(500).send(error);
-  }
-});
+    try {
+      const properties = await Property.find();
+      // Convert imageData from Buffer to Base64
+      const propertiesWithBase64 = properties.map(property => ({
+        ...property.toJSON(),
+        imageData: property.imageData.toString('base64')
+      }));
+      res.status(200).send(propertiesWithBase64);
+    } catch (error) {
+      console.error('Error fetching properties:', error);
+      res.status(500).send(error);
+    }
+  });
 
 // Route to delete a property
 app.delete('/properties/:id', async (req, res) => {
