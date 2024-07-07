@@ -10,7 +10,7 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://naman:<password>@cluster0.watcwoc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+mongoose.connect('mongodb+srv://naman:<naman123>@cluster0.watcwoc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
