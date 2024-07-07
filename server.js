@@ -21,7 +21,7 @@ const propertySchema = new mongoose.Schema({
   price: Number,
   description: String,
   link: String,
-  imageData: Buffer, // Store image as Buffer (binary data)
+  imageData: String, // Store image as base64 encoded string
 });
 
 const Property = mongoose.model('Property', propertySchema);
@@ -37,7 +37,7 @@ app.post('/properties', upload.single('image'), async (req, res) => {
     let imageData;
 
     if (req.file) {
-      imageData = req.file.buffer; // Get image buffer if provided
+      imageData = req.file.buffer.toString('base64'); // Convert image buffer to base64 string
     }
 
     const newProperty = new Property({
