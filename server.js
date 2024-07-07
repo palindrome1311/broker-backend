@@ -1,49 +1,47 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const multer = require('multer');
 const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://naman:<naman123>@cluster0.watcwoc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  ssl: true,
+  sslValidate: true,
 });
 
 const propertySchema = new mongoose.Schema({
   name: String,
   price: Number,
   description: String,
-  photo: String,
-  video: String,
+  link: String,
 });
 
 const Property = mongoose.model('Property', propertySchema);
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
-});
-
-const upload = multer({ storage });
-
 app.get('/properties', async (req, res) => {
-  const properties = await Property.find().sort({ price: 1 });
-  res.json(properties);
+  try {
+    const properties = await Property.find().sort({ price: 1 });
+    res.json(properties);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch properties', error: error.message });
+  }
 });
 
-app.post('/properties', upload.fields([{ name: 'photo' }, { name: 'video' }]), async (req, res) => {
-  const { name, price, description } = req.body;
-  const photo = req.files.photo[0].path;
-  const video = req.files.video[0].path;
-  const newProperty = new Property({ name, price, description, photo, video });
-  await newProperty.save();
-  res.json(newProperty);
+app.post('/properties', async (req, res) => {
+  try {
+    const { name, price, description, link } = req.body;
+    const newProperty = new Property({ name, price, description, link });
+    await newProperty.save();
+    res.json(newProperty);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to add property', error: error.message });
+  }
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
