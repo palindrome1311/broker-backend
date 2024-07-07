@@ -56,16 +56,15 @@ app.post('/properties', upload.single('image'), async (req, res) => {
   }
 });
 
-// Route to get all properties
 app.get('/properties', async (req, res) => {
-  try {
-    const properties = await Property.find();
-    res.status(200).send(properties);
-  } catch (error) {
-    console.error('Error fetching properties:', error);
-    res.status(500).send(error);
-  }
-});
+    try {
+      const properties = await Property.find().sort({ price: 1 }); // Sort by price in ascending order
+      res.status(200).send(properties);
+    } catch (error) {
+      console.error('Error fetching properties:', error);
+      res.status(500).send(error);
+    }
+  });
 
 // Route to delete a property
 app.delete('/properties/:id', async (req, res) => {
