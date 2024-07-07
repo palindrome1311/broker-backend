@@ -1,7 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-
+const cors = require('cors');
 const app = express();
+
 const PORT = process.env.PORT || 5000;
 
 // MongoDB connection
@@ -22,6 +23,7 @@ const propertySchema = new mongoose.Schema({
 });
 
 const Property = mongoose.model('Property', propertySchema);
+app.use(cors());
 
 // Middleware to parse JSON bodies
 app.use(express.json());
