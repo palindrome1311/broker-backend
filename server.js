@@ -56,6 +56,24 @@ app.post('/properties', upload.single('image'), async (req, res) => {
   }
 });
 
+app.put('/properties/:id', async (req, res) => {
+    const { id } = req.params;
+    const { description } = req.body;
+  
+    try {
+      const updatedProperty = await Property.findByIdAndUpdate(id, { description }, { new: true });
+  
+      if (!updatedProperty) {
+        return res.status(404).send('Property not found');
+      }
+  
+      res.status(200).send(updatedProperty);
+    } catch (error) {
+      console.error('Error updating property description:', error);
+      res.status(500).send(error);
+    }
+  });
+
 app.get('/properties', async (req, res) => {
     try {
       const properties = await Property.find().sort({ price: 1 }); // Sort by price in ascending order
