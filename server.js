@@ -32,7 +32,7 @@ const propertySchema = new mongoose.Schema({
   price: Number,
   description: String,
   link: String,
-  image: imagePath,
+  image: String,
 });
 
 const Property = mongoose.model('Property', propertySchema);
