@@ -1,9 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const multer = require('multer'); // Import multer for handling multipart/form-data
-const app = express();
+const multer = require('multer'); // Middleware for handling multipart/form-data
+const upload = multer(); // Initialize multer
 
+const app = express();
 const PORT = process.env.PORT || 5000;
 
 // MongoDB connection
@@ -26,18 +27,18 @@ const propertySchema = new mongoose.Schema({
 const Property = mongoose.model('Property', propertySchema);
 app.use(cors());
 
-// Multer middleware for handling image uploads
-const storage = multer.memoryStorage(); // Use memory storage for handling files as buffers
-const upload = multer({ storage: storage });
-
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-// Route to handle property addition with image upload
+// Route to handle property addition with optional image upload
 app.post('/properties', upload.single('image'), async (req, res) => {
   try {
     const { name, price, description, link } = req.body;
-    const imageData = req.file.buffer; // Image data as Buffer from multer
+    let imageData;
+
+    if (req.file) {
+      imageData = req.file.buffer; // Get image buffer if provided
+    }
 
     const newProperty = new Property({
       name,
@@ -57,19 +58,14 @@ app.post('/properties', upload.single('image'), async (req, res) => {
 
 // Route to get all properties
 app.get('/properties', async (req, res) => {
-    try {
-      const properties = await Property.find();
-      // Convert imageData from Buffer to Base64
-      const propertiesWithBase64 = properties.map(property => ({
-        ...property.toJSON(),
-        imageData: property.imageData.toString('base64')
-      }));
-      res.status(200).send(propertiesWithBase64);
-    } catch (error) {
-      console.error('Error fetching properties:', error);
-      res.status(500).send(error);
-    }
-  });
+  try {
+    const properties = await Property.find();
+    res.status(200).send(properties);
+  } catch (error) {
+    console.error('Error fetching properties:', error);
+    res.status(500).send(error);
+  }
+});
 
 // Route to delete a property
 app.delete('/properties/:id', async (req, res) => {
