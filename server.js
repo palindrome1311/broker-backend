@@ -1,84 +1,79 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
-const multer = require('multer');
-const path = require('path');
 
-
-
-// Multer configuration for image upload
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, './uploads'); // Save uploaded images to 'uploads' folder
-    },
-    filename: function (req, file, cb) {
-      cb(null, Date.now() + '-' + file.originalname); // Append timestamp to ensure unique filenames
-    },
-  });
-  
-const upload = multer({ storage: storage });
-
-app.use(cors());
-app.use(express.json());
-// Connect to MongoDB
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  ssl: true,
-  sslValidate: true,
-});
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    ssl: true,
+    sslValidate: true,
+  });
+
+// Define schema and model
 const propertySchema = new mongoose.Schema({
   name: String,
   price: Number,
   description: String,
   link: String,
-  image: String,
+  imageData: Buffer, // Store image as Buffer (binary data)
 });
 
 const Property = mongoose.model('Property', propertySchema);
 
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Route to handle property addition with image upload
+app.post('/properties', async (req, res) => {
+  try {
+    const { name, price, description, link, imageData } = req.body;
+
+    const newProperty = new Property({
+      name,
+      price,
+      description,
+      link,
+      imageData: Buffer.from(imageData, 'base64'), // Convert base64 image data to Buffer
+    });
+
+    await newProperty.save();
+    res.status(201).send(newProperty);
+  } catch (error) {
+    console.error('Error adding property:', error);
+    res.status(500).send(error);
+  }
+});
+
+// Route to get all properties
 app.get('/properties', async (req, res) => {
   try {
-    const properties = await Property.find().sort({ price: 1 });
-    res.json(properties);
+    const properties = await Property.find();
+    res.status(200).send(properties);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch properties', error: error.message });
+    console.error('Error fetching properties:', error);
+    res.status(500).send(error);
   }
 });
 
-app.post('/properties', upload.single('image'), async (req, res) => {
-    try {
-      const { name, price, description, link } = req.body;
-      const imagePath = req.file.path; // Path of the uploaded image
-  
-      const newProperty = new Property({
-        name,
-        price,
-        description,
-        link,
-        image: imagePath, // Save image path to database
-      });
-  
-      await newProperty.save();
-      res.status(201).send(newProperty);
-    } catch (error) {
-      console.error('Error adding property:', error);
-      res.status(500).send(error);
-    }
-  });
-
+// Route to delete a property
 app.delete('/properties/:id', async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
-    await Property.findByIdAndDelete(id);
-    res.json({ message: 'Property deleted successfully' });
+    const deletedProperty = await Property.findByIdAndDelete(id);
+    if (!deletedProperty) {
+      return res.status(404).send('Property not found');
+    }
+    res.status(200).send('Property deleted successfully');
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete property', error: error.message });
+    console.error('Error deleting property:', error);
+    res.status(500).send(error);
   }
 });
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
