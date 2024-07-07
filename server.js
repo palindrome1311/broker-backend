@@ -6,7 +6,6 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
-
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -14,7 +13,6 @@ mongoose.connect(process.env.MONGO_URI, {
   ssl: true,
   sslValidate: true,
 });
-
 const propertySchema = new mongoose.Schema({
   name: String,
   price: Number,
@@ -41,6 +39,16 @@ app.post('/properties', async (req, res) => {
     res.json(newProperty);
   } catch (error) {
     res.status(500).json({ message: 'Failed to add property', error: error.message });
+  }
+});
+
+app.delete('/properties/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Property.findByIdAndDelete(id);
+    res.json({ message: 'Property deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete property', error: error.message });
   }
 });
 
