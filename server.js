@@ -77,5 +77,6 @@ app.delete('/properties/:id', async (req, res) => {
   }
 });
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
