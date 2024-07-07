@@ -77,7 +77,5 @@ app.delete('/properties/:id', async (req, res) => {
   }
 });
 
-// Serve static files from the 'uploads' folder
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
