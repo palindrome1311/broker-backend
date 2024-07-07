@@ -1,17 +1,18 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const multer = require('multer'); // Import multer for handling multipart/form-data
 const app = express();
 
 const PORT = process.env.PORT || 5000;
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    ssl: true,
-    sslValidate: true,
-  });
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  ssl: true,
+  sslValidate: true,
+});
 
 // Define schema and model
 const propertySchema = new mongoose.Schema({
@@ -25,20 +26,25 @@ const propertySchema = new mongoose.Schema({
 const Property = mongoose.model('Property', propertySchema);
 app.use(cors());
 
+// Multer middleware for handling image uploads
+const storage = multer.memoryStorage(); // Use memory storage for handling files as buffers
+const upload = multer({ storage: storage });
+
 // Middleware to parse JSON bodies
 app.use(express.json());
 
 // Route to handle property addition with image upload
-app.post('/properties', async (req, res) => {
+app.post('/properties', upload.single('image'), async (req, res) => {
   try {
-    const { name, price, description, link, imageData } = req.body;
+    const { name, price, description, link } = req.body;
+    const imageData = req.file.buffer; // Image data as Buffer from multer
 
     const newProperty = new Property({
       name,
       price,
       description,
       link,
-      imageData: Buffer.from(imageData, 'base64'), // Convert base64 image data to Buffer
+      imageData,
     });
 
     await newProperty.save();
