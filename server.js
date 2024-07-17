@@ -21,6 +21,7 @@ const propertySchema = new mongoose.Schema({
   price: Number,
   description: String,
   link: String,
+  mobileNumber: String, // New field for mobile number
   imageData: String, // Store image as base64 encoded string
 });
 
@@ -45,6 +46,7 @@ app.post('/properties', upload.single('image'), async (req, res) => {
       price,
       description,
       link,
+      mobileNumber, // Store mobile number
       imageData,
     });
 
