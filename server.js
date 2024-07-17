@@ -34,7 +34,7 @@ app.use(express.json());
 // Route to handle property addition with optional image upload
 app.post('/properties', upload.single('image'), async (req, res) => {
   try {
-    const { name, price, description, link } = req.body;
+    const { name, price, description, link, mobileNumber } = req.body;
     let imageData;
 
     if (req.file) {
